@@ -121,10 +121,20 @@ vector<Vertex> loadUserGeneratedModel() {
 	vector<Vertex> vertices;
 	
 	Vertex v0, v1, v2;
+	Vec3f u0, u1;
 
 	// Generate one face at a time
-	for(auto i = 0u; i < faces; ++i)	{
+	v0.position = {0, 0, 0};
+	for(auto i = 0u; i < faces;)	{
 		// YOUR CODE HERE (R2)
+		v2.position = {cosf(angle_increment * i) * radius, -height, sinf(angle_increment * i) * radius};
+		u0 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, -height, sinf(angle_increment * i + FW_PI / 2.0) * radius};
+		i++;
+		v1.position = {cosf(angle_increment * i) * radius, -height, sinf(angle_increment * i) * radius};
+		u1 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, -height, sinf(angle_increment * i + FW_PI / 2.0) * radius};
+		v0.normal = v1.position.cross(v2.position).normalized();
+		v2.normal = u0.cross(v1.position).normalized();
+		v1.normal = u1.cross(v2.position).normalized();
 		// Figure out the correct positions of the three vertices of this face.
 		// v0.position = ...
 		// Calculate the normal of the face from the positions and use it for all vertices.
@@ -153,7 +163,8 @@ App::App(void)
 	model_changed_			(true),
 	shading_toggle_			(false),
 	shading_mode_changed_	(false),
-	camera_rotation_angle_	(0.0f)
+	camera_rotation_angle_	(0.0f),
+	object_translation_		(Vec3f(0.0f, 0.0f, 0.0f))
 {
 	static_assert(is_standard_layout<Vertex>::value, "struct Vertex must be standard layout to use offsetof");
 	initRendering();
@@ -226,6 +237,18 @@ bool App::handleEvent(const Window::Event& ev) {
 			camera_rotation_angle_ -= 0.05 * FW_PI;
 		else if (ev.key == FW_KEY_END)
 			camera_rotation_angle_ += 0.05 * FW_PI;
+		else if (ev.key == FW_KEY_UP)
+			object_translation_[2] += 0.05;
+		else if (ev.key == FW_KEY_DOWN)
+			object_translation_[2] -= 0.05;
+		else if (ev.key == FW_KEY_PAGE_UP)
+			object_translation_[1] += 0.05;
+		else if (ev.key == FW_KEY_PAGE_DOWN)
+			object_translation_[1] -= 0.05;
+		else if (ev.key == FW_KEY_RIGHT)
+			object_translation_[0] += 0.05;
+		else if (ev.key == FW_KEY_LEFT)
+			object_translation_[0] -= 0.05;
 	}
 	
 	if (ev.type == Window::EventType_KeyUp) {
@@ -384,7 +407,7 @@ void App::render() {
 	
 	// YOUR CODE HERE (R1)
 	// Set the model space -> world space transform to translate the model according to user input.
-	Mat4f modelToWorld;
+	Mat4f modelToWorld = Mat4f::translate(object_translation_);
 	
 	// Draw the model with your model-to-world transformation.
 	glUniformMatrix4fv(gl_.model_to_world_uniform, 1, GL_FALSE, modelToWorld.getPtr());

@@ -3,8 +3,8 @@
 #
 # Assignment 1: Introduction
 
-Student name:
-Student number:
+Student name:   Aleksanteri Paakkinen
+Student number: 588807
 Hours spent on requirements (approx.):
 Hours spent on extra credit (approx.):
 
@@ -13,30 +13,50 @@ Hours spent on extra credit (approx.):
 # They will not be judged or affect your points, but please answer all of them.
 # Keep it short; answering shouldn't take you more than 5-10 minutes.
 
-- What are you studying here at Aalto? (Department, major, minor...?)
+- What are you studying here at Aalto?
+
+  Mathematics major + CS minor
 
 - Which year of your studies is this?
 
+  Third
+
 - Is this a mandatory course for you?
+
+  No
 
 - Have you had something to do with graphics before? Other studies, personal interests, work?
 
+  Very little personal programming experience, more with vfx tools like Maya et al
+
 - Do you remember basic linear algebra? Matrix and vector multiplication, cross product, that sort of thing?
+
+  Yes
 
 - How is your overall programming experience? What language are you most comfortable with?
 
+  Broad but not deep, most comfortable with C or Python
+
 - Do you have some experience with these things? (If not, do you have experience with something similar such as C or Direct3D?)
-C++:
-C++11:
-OpenGL:
+C++: A little, but have C backgroud
+C++11: Not much
+OpenGL: I have gotten some triangles to move on screen
 
 - Have you used a version control system such as Git, Mercurial or Subversion? Which ones?
 
+  Yes, Git
+
 - Did you go to the technology lecture?
+
+  Yes
 
 - Did you go to exercise sessions?
 
+  No
+
 - Did you work on the assignment using Aalto computers, your own computers, or both?
+
+  My own computer
 
 # Which parts of the assignment did you complete? Mark them 'done'.
 # You can also mark non-completed parts as 'attempted' if you spent a fair amount of
@@ -46,7 +66,7 @@ OpenGL:
 (Try to get everything done! Based on previous data, virtually everyone who put in the work and did well in the first two assignments ended up finishing the course, and also reported a high level of satisfaction at the end of the course.)
 
                             opened this file (0p): done
-                         R1 Moving an object (1p): not done
+                         R1 Moving an object (1p): done
 R2 Generating a simple cone mesh and normals (3p): not done
   R3 Converting mesh data for OpenGL viewing (3p): not done
            R4 Loading a large mesh from file (3p): not done
