@@ -174,7 +174,9 @@ App::App(void)
 	shading_toggle_			(false),
 	shading_mode_changed_	(false),
 	camera_rotation_angle_	(0.0f),
-	object_translation_		(Vec3f(0.0f, 0.0f, 0.0f))
+	object_translation_		(Vec3f(0.0f, 0.0f, 0.0f)),
+	object_rotation_angle_  (0.0f),
+	object_scaling_			(1.0f)
 {
 	static_assert(is_standard_layout<Vertex>::value, "struct Vertex must be standard layout to use offsetof");
 	initRendering();
@@ -259,6 +261,14 @@ bool App::handleEvent(const Window::Event& ev) {
 			object_translation_[0] += 0.05;
 		else if (ev.key == FW_KEY_LEFT)
 			object_translation_[0] -= 0.05;
+		else if (ev.key == FW_KEY_PLUS)
+			object_scaling_ += 0.05;
+		else if (ev.key == FW_KEY_MINUS)
+			object_scaling_ -= 0.05;
+		else if (ev.key == FW_KEY_INSERT)
+			object_rotation_angle_ += 0.05 * FW_PI;
+		else if (ev.key == FW_KEY_DELETE)
+			object_rotation_angle_ -= 0.05 * FW_PI;
 	}
 	
 	if (ev.type == Window::EventType_KeyUp) {
@@ -334,6 +344,7 @@ void App::initRendering() {
 		out vec4 vColor;
 		
 		uniform mat4 uModelToWorld;
+		uniform mat3 uModelNormalsToWorld;
 		uniform mat4 uWorldToClip;
 		uniform float uShading;
 		
@@ -345,7 +356,7 @@ void App::initRendering() {
 		void main()
 		{
 			// EXTRA: oops, someone forgot to transform normals here...
-			float clampedCosine = clamp(dot(aNormal, directionToLight), 0.0, 1.0);
+			float clampedCosine = clamp(dot(uModelNormalsToWorld*aNormal, directionToLight), 0.0, 1.0);
 			vec3 litColor = vec3(clampedCosine);
 			vec3 generatedColor = distinctColors[gl_VertexID % 6];
 			// gl_Position is a built-in output variable that marks the final position
@@ -370,6 +381,7 @@ void App::initRendering() {
 	gl_.shader_program = shader_program->getHandle();
 	gl_.world_to_clip_uniform = glGetUniformLocation(gl_.shader_program, "uWorldToClip");
 	gl_.model_to_world_uniform = glGetUniformLocation(gl_.shader_program, "uModelToWorld");
+	gl_.model_normals_to_world_uniform = glGetUniformLocation(gl_.shader_program, "uModelNormalsToWorld");
 	gl_.shading_toggle_uniform = glGetUniformLocation(gl_.shader_program, "uShading");
 }
 
@@ -417,10 +429,21 @@ void App::render() {
 	
 	// YOUR CODE HERE (R1)
 	// Set the model space -> world space transform to translate the model according to user input.
-	Mat4f modelToWorld = Mat4f::translate(object_translation_);
+	Mat4f scaling = Mat4f::scale(Vec3f(object_scaling_, 1, 1));
+	Mat4f rotation;
+	Mat3f obj_rot = Mat3f::rotation(Vec3f(0, 1, 0), -object_rotation_angle_);
+	rotation.setCol(0, Vec4f(obj_rot.getCol(0), 0));
+	rotation.setCol(1, Vec4f(obj_rot.getCol(1), 0));
+	rotation.setCol(2, Vec4f(obj_rot.getCol(2), 0));
+	rotation.setCol(3, Vec4f(0, 0, 0, 1));
+	Mat4f translation = Mat4f::translate(object_translation_);
+	Mat4f modelToWorld = translation * rotation * scaling;
+
+	Mat3f modelNormalsToWorld = obj_rot * Mat3f::scale(Vec3f(1 / object_scaling_, 1, 1));
 	
 	// Draw the model with your model-to-world transformation.
 	glUniformMatrix4fv(gl_.model_to_world_uniform, 1, GL_FALSE, modelToWorld.getPtr());
+	glUniformMatrix3fv(gl_.model_normals_to_world_uniform, 1, GL_FALSE, modelNormalsToWorld.getPtr());
 	glBindVertexArray(gl_.dynamic_vao);
 	glDrawArrays(GL_TRIANGLES, 0, vertices_.size());
 
