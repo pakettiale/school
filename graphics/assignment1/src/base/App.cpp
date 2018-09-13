@@ -174,6 +174,7 @@ App::App(void)
 	shading_toggle_			(false),
 	shading_mode_changed_	(false),
 	camera_rotation_angle_	(0.0f),
+	camera_rotation_quaternion_ (Vec4f(1, 0, 0, 0)),
 	object_translation_		(Vec3f(0.0f, 0.0f, 0.0f)),
 	object_rotation_angle_  (0.0f),
 	object_scaling_			(1.0f)
@@ -275,6 +276,33 @@ bool App::handleEvent(const Window::Event& ev) {
 	}
 
 	if (ev.type == Window::EventType_Mouse) {
+		Vec2f x = ((Vec2f) ev.mousePos / (Vec2f) window_.getSize() - 0.5) * 2.0;
+		Vec2f y = x + (Vec2f) ev.mouseDelta / (Vec2f) window_.getSize();
+		if (ev.mouseDragging) {
+
+			Vec3f v1, v2;
+			float r = 1.0;
+			v1 = Vec3f(x, trackball_calculate_z(x, r)).normalized();
+			v2 = Vec3f(y, trackball_calculate_z(y, r)).normalized();
+			cout << v1[0] << " " << v1[1] << " " << v1[2] << endl;
+			cout << v2[0] << " " << v2[1] << " " << v2[2] << endl;
+			Vec3f N = v1.cross(v2);
+			cout << N[0] << " " << N[1] << " " << N[2] << endl;
+			float theta = acosf(v1.dot(v2));
+			cout << "Theta" << theta << endl;
+			N *= sin(theta / 2);
+			float cosB = cos(theta / 2);
+			cout << "cosB" << cosB << endl;
+			float cosA = camera_rotation_quaternion_[0];
+			cout << "cosA" << cosA << endl;
+			Vec3f B = N;
+			Vec3f A = Vec3f(camera_rotation_quaternion_[1], camera_rotation_quaternion_[2], camera_rotation_quaternion_[3]);
+			float Q1 = cosB * cosA - B.dot(A);
+			Vec3f Q2 = cosA * B + cosB * A + B.cross(A);
+			camera_rotation_quaternion_ = Vec4f(Q1, Q2[0], Q2[1], Q2[2]);
+			
+			cout << Q1 << " : " << Q2[0] << " " << Q2[1] << " " << Q2[2];
+		}
 		// EXTRA: you can put your mouse controls here.
 		// Event::mouseDelta gives the distance the mouse has moved.
 		// Event::mouseDragging tells whether some mouse buttons are currently down.
@@ -405,6 +433,7 @@ void App::render() {
 	C.setCol(1, Vec4f(rot.getCol(1), 0));
 	C.setCol(2, Vec4f(rot.getCol(2), 0));
 	C.setCol(3, Vec4f(0, 0, camera_distance, 1));
+	Mat3f::rota
 	
 	// Simple perspective.
 	static const float fnear = 0.1f, ffar = 4.0f;
@@ -540,4 +569,16 @@ vector<Vertex> App::loadObjFileModel(string filename) {
 
 void FW::init(void) {
 	new App;
+}
+
+float App::trackball_calculate_z(Vec2f& x, float r) {
+	float z;
+	if (x[0] * x[0] + x[1] * x[1] <= r * r / 2) {
+		z = sqrtf(r*r - x[0] * x[0] - x[1] * x[1]);
+	}
+	else {
+		z = r * r / 2 / x.length();
+	}
+
+	return z;
 }

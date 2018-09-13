@@ -47,6 +47,7 @@ private:
 	void				initRendering();
 	void				render();
 	std::vector<Vertex>	loadObjFileModel(std::string filename);
+	float				trackball_calculate_z(Vec2f &, float);
 
 	Window				window_;
 	CommonControls		common_ctrl_;
@@ -61,6 +62,7 @@ private:
 	std::vector<Vertex>	vertices_;
 
 	float				camera_rotation_angle_;
+	Vec4f				camera_rotation_quaternion_;
 
 	// YOUR CODE HERE (R1)
 	// Add a class member to store the current translation
