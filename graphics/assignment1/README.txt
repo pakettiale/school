@@ -5,7 +5,7 @@
 
 Student name:   Aleksanteri Paakkinen
 Student number: 588807
-Hours spent on requirements (approx.):
+Hours spent on requirements (approx.): 3h
 Hours spent on extra credit (approx.):
 
 # First, some questions about where you come from and how you got started.
@@ -67,9 +67,9 @@ OpenGL: I have gotten some triangles to move on screen
 
                             opened this file (0p): done
                          R1 Moving an object (1p): done
-R2 Generating a simple cone mesh and normals (3p): not done
-  R3 Converting mesh data for OpenGL viewing (3p): not done
-           R4 Loading a large mesh from file (3p): not done
+R2 Generating a simple cone mesh and normals (3p): done
+  R3 Converting mesh data for OpenGL viewing (3p): done
+           R4 Loading a large mesh from file (3p): done
 
 # Did you do any extra credit work?
 

@@ -72,6 +72,16 @@ vector<Vertex> unpackIndexedData(
 		// f[1] is the index of the normal of the first vertex
 		// f[2] is the index of the position of the second vertex
 		// ...
+
+		Vertex v0, v1, v2;
+		v0.position = positions[f[0]];
+		v0.normal = normals[f[1]];
+		v1.position = positions[f[2]];
+		v1.normal = normals[f[3]];
+		v2.position = positions[f[4]];
+		v2.normal = normals[f[5]];
+
+		vertices.push_back(v0); vertices.push_back(v1); vertices.push_back(v2);
 	}
 
 	return vertices;
@@ -127,14 +137,14 @@ vector<Vertex> loadUserGeneratedModel() {
 	v0.position = {0, 0, 0};
 	for(auto i = 0u; i < faces;)	{
 		// YOUR CODE HERE (R2)
-		v2.position = {cosf(angle_increment * i) * radius, -height, sinf(angle_increment * i) * radius};
-		u0 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, -height, sinf(angle_increment * i + FW_PI / 2.0) * radius};
-		i++;
 		v1.position = {cosf(angle_increment * i) * radius, -height, sinf(angle_increment * i) * radius};
-		u1 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, -height, sinf(angle_increment * i + FW_PI / 2.0) * radius};
+		u0 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, 0.0f, sinf(angle_increment * i + FW_PI / 2.0) * radius};
+		i++;
+		v2.position = {cosf(angle_increment * i) * radius, -height, sinf(angle_increment * i) * radius};
+		u1 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, 0.0f, sinf(angle_increment * i + FW_PI / 2.0) * radius};
 		v0.normal = v1.position.cross(v2.position).normalized();
-		v2.normal = u0.cross(v1.position).normalized();
-		v1.normal = u1.cross(v2.position).normalized();
+		v1.normal = u0.cross(v1.position).normalized();
+		v2.normal = u1.cross(v2.position).normalized();
 		// Figure out the correct positions of the three vertices of this face.
 		// v0.position = ...
 		// Calculate the normal of the face from the positions and use it for all vertices.
@@ -463,9 +473,13 @@ vector<Vertex> App::loadObjFileModel(string filename) {
 			// Read the three vertex coordinates (x, y, z) into 'v'.
 			// Store a copy of 'v' in 'positions'.
 			// See std::vector documentation for push_back.
+			iss >> v[0] >> v[1] >> v[2];
+			positions.push_back(v);
 		} else if (s == "vn") { // normal
 			// YOUR CODE HERE (R4)
 			// Similar to above.
+			iss >> v[0] >> v[1] >> v[2];
+			normals.push_back(v);
 		} else if (s == "f") { // face
 			// YOUR CODE HERE (R4)
 			// Read the indices representing a face and store it in 'faces'.
@@ -479,6 +493,16 @@ vector<Vertex> App::loadObjFileModel(string filename) {
 			// the texture indices by reading them into a temporary variable.
 
 			unsigned sink; // Temporary variable for reading the unused texture indices.
+
+			for (int i = 0; i < 3; i++) {
+				iss >> f[2 * i] >> sink >> f[2 * i + 1];
+				f[2 * i]--; //Obj-format 1-indexed to C++ 0-indexed
+				f[2 * i + 1]--;
+			}
+
+			//cout << f[0] << " " << f[1] << " " << f[2] << " " << f[3] << " " << f[4] << " " << f[5] << endl;
+
+			faces.push_back(f);
 
 			// Note that in C++ we index things starting from 0, but face indices in OBJ format start from 1.
 			// If you don't adjust for that, you'll index past the range of your vectors and get a crash.
