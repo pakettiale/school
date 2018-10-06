@@ -277,7 +277,7 @@ bool App::handleEvent(const Window::Event& ev) {
 
 	if (ev.type == Window::EventType_Mouse) {
 		Vec2f x = ((Vec2f) ev.mousePos / (Vec2f) window_.getSize() - 0.5) * 2.0;
-		Vec2f y = x + (Vec2f) ev.mouseDelta/40.0;
+		Vec2f y = x + (Vec2f(-ev.mouseDelta[0], ev.mouseDelta[1])) /40.0;
 		if (ev.mouseDragging) {
 
 			Vec3f v1, v2;
