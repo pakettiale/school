@@ -5,8 +5,8 @@
 
 Student name:   Aleksanteri Paakkinen
 Student number: 588807
-Hours spent on requirements (approx.):
-Hours spent on extra credit (approx.):
+Hours spent on requirements (approx.): 3h
+Hours spent on extra credit (approx.): 4h?
 
 # First, some questions about where you come from and how you got started.
 # Your answers in this section will be used to improve the course.
@@ -40,7 +40,7 @@ Hours spent on extra credit (approx.):
 - Do you have some experience with these things? (If not, do you have experience with something similar such as C or Direct3D?)
 C++: A little, but have C backgroud
 C++11: Not much
-OpenGL: I have gotten some triangles to move on screen
+OpenGL: I have played around with it before, but nothing complicated
 
 - Have you used a version control system such as Git, Mercurial or Subversion? Which ones?
 
@@ -67,23 +67,32 @@ OpenGL: I have gotten some triangles to move on screen
 
                             opened this file (0p): done
                          R1 Moving an object (1p): done
-R2 Generating a simple cone mesh and normals (3p): not done
-  R3 Converting mesh data for OpenGL viewing (3p): not done
-           R4 Loading a large mesh from file (3p): not done
+R2 Generating a simple cone mesh and normals (3p): done
+  R3 Converting mesh data for OpenGL viewing (3p): done
+           R4 Loading a large mesh from file (3p): done
 
 # Did you do any extra credit work?
 
-(Describe what you did and, if there was a substantial amount of work involved, how you did it. Also describe how to use/activate your extra features, if they are interactive.)
+  Files are in my general school stuff git-repo. (logfile.txt)
+  Object scaling and rotation works correctly. (scale +/-, rotation ins/del)
+  Normals are transformed correctly and efficiently.
+  Virtual trackball rotation for the camera works. I did it with quaternions for which I had to get the formulas from the interwebz, is there no readily
+  available methods for this in the framework? (no translations for the camera, also the ui shows wrong coordinates)
 
 # Are there any known problems/bugs remaining in your code?
 
 (Please provide a list of the problems. If possible, describe what you think the cause is, how you have attempted to diagnose or fix the problem, and how you would attempt to diagnose or fix it if you had more time or motivation. This is important: we are more likely to assign partial credit if you help us understand what's going on.)
 
 # Did you collaborate with anyone in the class?
+I did answer to a question on Mycourses forums about the retargeting problem in VS.
 
 (Did you help others? Did others help you? Let us know who you talked to, and what sort of help you gave or received.)
 
 # Any other comments you'd like to share about the assignment or the course so far?
+
+It was fun, the normal scaling part wasn't explained well enough IMO, especially the part about how you would fix it in your code.
+Also I think it's kind of pointless to ask people to write inefficient code, especially in this situation where the faster way is also
+the more idiomatic one.
 
 (Was the assignment too long? Too hard? Fun or boring? Did you learn something, or was it a total waste of time? Can we do something differently to help you learn? Please be brutally honest; we won't take it personally.)
 

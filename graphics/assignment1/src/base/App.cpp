@@ -72,6 +72,16 @@ vector<Vertex> unpackIndexedData(
 		// f[1] is the index of the normal of the first vertex
 		// f[2] is the index of the position of the second vertex
 		// ...
+
+		Vertex v0, v1, v2;
+		v0.position = positions[f[0]];
+		v0.normal = normals[f[1]];
+		v1.position = positions[f[2]];
+		v1.normal = normals[f[3]];
+		v2.position = positions[f[4]];
+		v2.normal = normals[f[5]];
+
+		vertices.push_back(v0); vertices.push_back(v1); vertices.push_back(v2);
 	}
 
 	return vertices;
@@ -127,14 +137,14 @@ vector<Vertex> loadUserGeneratedModel() {
 	v0.position = {0, 0, 0};
 	for(auto i = 0u; i < faces;)	{
 		// YOUR CODE HERE (R2)
-		v2.position = {cosf(angle_increment * i) * radius, -height, sinf(angle_increment * i) * radius};
-		u0 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, -height, sinf(angle_increment * i + FW_PI / 2.0) * radius};
-		i++;
 		v1.position = {cosf(angle_increment * i) * radius, -height, sinf(angle_increment * i) * radius};
-		u1 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, -height, sinf(angle_increment * i + FW_PI / 2.0) * radius};
+		u0 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, 0.0f, sinf(angle_increment * i + FW_PI / 2.0) * radius};
+		i++;
+		v2.position = {cosf(angle_increment * i) * radius, -height, sinf(angle_increment * i) * radius};
+		u1 = {cosf(angle_increment * i + FW_PI / 2.0) * radius, 0.0f, sinf(angle_increment * i + FW_PI / 2.0) * radius};
 		v0.normal = v1.position.cross(v2.position).normalized();
-		v2.normal = u0.cross(v1.position).normalized();
-		v1.normal = u1.cross(v2.position).normalized();
+		v1.normal = u0.cross(v1.position).normalized();
+		v2.normal = u1.cross(v2.position).normalized();
 		// Figure out the correct positions of the three vertices of this face.
 		// v0.position = ...
 		// Calculate the normal of the face from the positions and use it for all vertices.
@@ -164,7 +174,10 @@ App::App(void)
 	shading_toggle_			(false),
 	shading_mode_changed_	(false),
 	camera_rotation_angle_	(0.0f),
-	object_translation_		(Vec3f(0.0f, 0.0f, 0.0f))
+	camera_rotation_quaternion_ (Vec4f(1, 0, 0, 0)),
+	object_translation_		(Vec3f(0.0f, 0.0f, 0.0f)),
+	object_rotation_angle_  (0.0f),
+	object_scaling_			(1.0f)
 {
 	static_assert(is_standard_layout<Vertex>::value, "struct Vertex must be standard layout to use offsetof");
 	initRendering();
@@ -249,12 +262,47 @@ bool App::handleEvent(const Window::Event& ev) {
 			object_translation_[0] += 0.05;
 		else if (ev.key == FW_KEY_LEFT)
 			object_translation_[0] -= 0.05;
+		else if (ev.key == FW_KEY_PLUS)
+			object_scaling_ += 0.05;
+		else if (ev.key == FW_KEY_MINUS)
+			object_scaling_ -= 0.05;
+		else if (ev.key == FW_KEY_INSERT)
+			object_rotation_angle_ += 0.05 * FW_PI;
+		else if (ev.key == FW_KEY_DELETE)
+			object_rotation_angle_ -= 0.05 * FW_PI;
 	}
 	
 	if (ev.type == Window::EventType_KeyUp) {
 	}
 
 	if (ev.type == Window::EventType_Mouse) {
+		Vec2f x = ((Vec2f) ev.mousePos / (Vec2f) window_.getSize() - 0.5) * 2.0;
+		Vec2f y = x + (Vec2f(-ev.mouseDelta[0], ev.mouseDelta[1])) /40.0;
+		if (ev.mouseDragging) {
+
+			Vec3f v1, v2;
+			float r = 1.0;
+			v1 = Vec3f(x, trackball_calculate_z(x, r)).normalized();
+			v2 = Vec3f(y, trackball_calculate_z(y, r)).normalized();
+			//cout << v1[0] << " " << v1[1] << " " << v1[2] << endl;
+			//cout << v2[0] << " " << v2[1] << " " << v2[2] << endl;
+			Vec3f N = v1.cross(v2);
+			//cout << N[0] << " " << N[1] << " " << N[2] << endl;
+			float theta = acosf(v1.dot(v2));
+			//cout << "Theta" << theta << endl;
+			N *= sin(theta / 2);
+			float cosB = cos(theta / 2);
+			//cout << "cosB" << cosB << endl;
+			float cosA = camera_rotation_quaternion_[0];
+			//cout << "cosA" << cosA << endl;
+			Vec3f B = N;
+			Vec3f A = Vec3f(camera_rotation_quaternion_[1], camera_rotation_quaternion_[2], camera_rotation_quaternion_[3]);
+			float Q1 = cosB * cosA - B.dot(A);
+			Vec3f Q2 = cosA * B + cosB * A + B.cross(A);
+			camera_rotation_quaternion_ = Vec4f(Q1, Q2[0], Q2[1], Q2[2]);
+			
+			//cout << Q1 << " : " << Q2[0] << " " << Q2[1] << " " << Q2[2];
+		}
 		// EXTRA: you can put your mouse controls here.
 		// Event::mouseDelta gives the distance the mouse has moved.
 		// Event::mouseDragging tells whether some mouse buttons are currently down.
@@ -324,6 +372,7 @@ void App::initRendering() {
 		out vec4 vColor;
 		
 		uniform mat4 uModelToWorld;
+		uniform mat3 uModelNormalsToWorld;
 		uniform mat4 uWorldToClip;
 		uniform float uShading;
 		
@@ -335,7 +384,7 @@ void App::initRendering() {
 		void main()
 		{
 			// EXTRA: oops, someone forgot to transform normals here...
-			float clampedCosine = clamp(dot(aNormal, directionToLight), 0.0, 1.0);
+			float clampedCosine = clamp(dot(uModelNormalsToWorld*aNormal, directionToLight), 0.0, 1.0);
 			vec3 litColor = vec3(clampedCosine);
 			vec3 generatedColor = distinctColors[gl_VertexID % 6];
 			// gl_Position is a built-in output variable that marks the final position
@@ -360,6 +409,7 @@ void App::initRendering() {
 	gl_.shader_program = shader_program->getHandle();
 	gl_.world_to_clip_uniform = glGetUniformLocation(gl_.shader_program, "uWorldToClip");
 	gl_.model_to_world_uniform = glGetUniformLocation(gl_.shader_program, "uModelToWorld");
+	gl_.model_normals_to_world_uniform = glGetUniformLocation(gl_.shader_program, "uModelNormalsToWorld");
 	gl_.shading_toggle_uniform = glGetUniformLocation(gl_.shader_program, "uShading");
 }
 
@@ -378,12 +428,24 @@ void App::render() {
 	// Our camera is aimed at origin, and orbits around origin at fixed distance.
 	static const float camera_distance = 2.1f;	
 	Mat4f C;
+
+	Vec3f qijk = Vec3f(camera_rotation_quaternion_[1], camera_rotation_quaternion_[2], camera_rotation_quaternion_[3]);
+	Mat3f qrot;
+	if (qijk.length() == 0) {
+		qrot = Mat3f();
+	}
+	else {
+		qrot = Mat3f::rotation(qijk / qijk.length(), 2 * atan2(qijk.length(), camera_rotation_quaternion_[0]));
+	}
 	Mat3f rot = Mat3f::rotation(Vec3f(0, 1, 0), -camera_rotation_angle_);
-	C.setCol(0, Vec4f(rot.getCol(0), 0));
-	C.setCol(1, Vec4f(rot.getCol(1), 0));
-	C.setCol(2, Vec4f(rot.getCol(2), 0));
+	//cout << qrot.getRow(0)[0] << qrot.getRow(0)[1] << qrot.getRow(0)[2] << endl;
+	//cout << qrot.getRow(1)[0] << qrot.getRow(1)[1] << qrot.getRow(1)[2] << endl;
+	//cout << qrot.getRow(2)[0] << qrot.getRow(2)[1] << qrot.getRow(2)[2] << endl;
+	C.setCol(0, Vec4f(qrot.getCol(0), 0));
+	C.setCol(1, Vec4f(qrot.getCol(1), 0));
+	C.setCol(2, Vec4f(qrot.getCol(2), 0));
 	C.setCol(3, Vec4f(0, 0, camera_distance, 1));
-	
+	//Mat3f rotation = Vec3f::
 	// Simple perspective.
 	static const float fnear = 0.1f, ffar = 4.0f;
 	Mat4f P;
@@ -407,10 +469,21 @@ void App::render() {
 	
 	// YOUR CODE HERE (R1)
 	// Set the model space -> world space transform to translate the model according to user input.
-	Mat4f modelToWorld = Mat4f::translate(object_translation_);
+	Mat4f scaling = Mat4f::scale(Vec3f(object_scaling_, 1, 1));
+	Mat4f rotation;
+	Mat3f obj_rot = Mat3f::rotation(Vec3f(0, 1, 0), -object_rotation_angle_);
+	rotation.setCol(0, Vec4f(obj_rot.getCol(0), 0));
+	rotation.setCol(1, Vec4f(obj_rot.getCol(1), 0));
+	rotation.setCol(2, Vec4f(obj_rot.getCol(2), 0));
+	rotation.setCol(3, Vec4f(0, 0, 0, 1));
+	Mat4f translation = Mat4f::translate(object_translation_);
+	Mat4f modelToWorld = translation * rotation * scaling;
+
+	Mat3f modelNormalsToWorld = obj_rot * Mat3f::scale(Vec3f(1 / object_scaling_, 1, 1));
 	
 	// Draw the model with your model-to-world transformation.
 	glUniformMatrix4fv(gl_.model_to_world_uniform, 1, GL_FALSE, modelToWorld.getPtr());
+	glUniformMatrix3fv(gl_.model_normals_to_world_uniform, 1, GL_FALSE, modelNormalsToWorld.getPtr());
 	glBindVertexArray(gl_.dynamic_vao);
 	glDrawArrays(GL_TRIANGLES, 0, vertices_.size());
 
@@ -463,9 +536,13 @@ vector<Vertex> App::loadObjFileModel(string filename) {
 			// Read the three vertex coordinates (x, y, z) into 'v'.
 			// Store a copy of 'v' in 'positions'.
 			// See std::vector documentation for push_back.
+			iss >> v[0] >> v[1] >> v[2];
+			positions.push_back(v);
 		} else if (s == "vn") { // normal
 			// YOUR CODE HERE (R4)
 			// Similar to above.
+			iss >> v[0] >> v[1] >> v[2];
+			normals.push_back(v);
 		} else if (s == "f") { // face
 			// YOUR CODE HERE (R4)
 			// Read the indices representing a face and store it in 'faces'.
@@ -480,6 +557,16 @@ vector<Vertex> App::loadObjFileModel(string filename) {
 
 			unsigned sink; // Temporary variable for reading the unused texture indices.
 
+			for (int i = 0; i < 3; i++) {
+				iss >> f[2 * i] >> sink >> f[2 * i + 1];
+				f[2 * i]--; //Obj-format 1-indexed to C++ 0-indexed
+				f[2 * i + 1]--;
+			}
+
+			//cout << f[0] << " " << f[1] << " " << f[2] << " " << f[3] << " " << f[4] << " " << f[5] << endl;
+
+			faces.push_back(f);
+
 			// Note that in C++ we index things starting from 0, but face indices in OBJ format start from 1.
 			// If you don't adjust for that, you'll index past the range of your vectors and get a crash.
 
@@ -493,4 +580,16 @@ vector<Vertex> App::loadObjFileModel(string filename) {
 
 void FW::init(void) {
 	new App;
+}
+
+float App::trackball_calculate_z(Vec2f& x, float r) {
+	float z;
+	if (x[0] * x[0] + x[1] * x[1] <= r * r / 2) {
+		z = sqrtf(r*r - x[0] * x[0] - x[1] * x[1]);
+	}
+	else {
+		z = r * r / 2 / x.length();
+	}
+
+	return z;
 }

@@ -20,7 +20,7 @@ struct glGeneratedIndices
 	GLuint static_vao, dynamic_vao;
 	GLuint shader_program;
 	GLuint static_vertex_buffer, dynamic_vertex_buffer;
-	GLuint model_to_world_uniform, world_to_clip_uniform, shading_toggle_uniform;
+	GLuint model_to_world_uniform, model_normals_to_world_uniform, world_to_clip_uniform, shading_toggle_uniform;
 };
 
 class App : public Window::Listener
@@ -47,6 +47,7 @@ private:
 	void				initRendering();
 	void				render();
 	std::vector<Vertex>	loadObjFileModel(std::string filename);
+	float				trackball_calculate_z(Vec2f &, float);
 
 	Window				window_;
 	CommonControls		common_ctrl_;
@@ -61,11 +62,14 @@ private:
 	std::vector<Vertex>	vertices_;
 
 	float				camera_rotation_angle_;
+	Vec4f				camera_rotation_quaternion_;
 
 	// YOUR CODE HERE (R1)
 	// Add a class member to store the current translation
 	
 	Vec3f				object_translation_;
+	float				object_rotation_angle_;
+	float				object_scaling_;
 
 	// EXTRA:
 	// For animation extra credit you can use the framework's Timer class.

@@ -1,0 +1,10 @@
+* (de6de15) 2018-09-13 20:25:38 +0300 <aleksanteri.paakkinen@gmail.com>
+| Include the .gitignore ...
+* (159a2a1) 2018-09-13 20:24:47 +0300 <aleksanteri.paakkinen@gmail.com>
+| Fix .gitignore  Please enter the commit message for your changes. Lines starting
+* (ccf79f5) 2018-09-13 16:50:30 +0300 <aleksanteri.paakkinen@gmail.com>
+| Solve R1 and R2
+* (c05147c) 2018-09-13 18:42:48 +0300 <aleksanteri.paakkinen@gmail.com>
+| Add first assignment
+* (7b7fd08) 2018-09-13 18:39:27 +0300 <aleksanteri.paakkinen@gmail.com>
+  Initial commit
